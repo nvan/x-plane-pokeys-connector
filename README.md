@@ -1,5 +1,5 @@
 # NVAN X-Plane PoKeys Connector
-Interface PoKeys with X-Plane DataRefs and Commands *(at the moment, it only supports Ethernet versions)*
+Interface PoKeys with X-Plane DataRefs and Commands *(works with both Ethernet and USB versions of PoKeys)*
 
 It's a totally stable solution, that does not require any plug-in to be installed.
 
