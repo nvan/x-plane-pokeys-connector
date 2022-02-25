@@ -2,7 +2,7 @@
 {
     public class Config
     {
-        public bool autoStart;
+        public bool autoStart, autoDiscovery;
         public string xPlaneIp, poKeysIp;
     }
 }

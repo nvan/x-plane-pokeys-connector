@@ -26,8 +26,11 @@ namespace nvan.PoKeysConnector
             poKeysIpTextBox.Text = configManager.GetConfig().poKeysIp;
             xPlaneIpTextBox.Text = configManager.GetConfig().xPlaneIp;
             autoStartCheckBox.Checked = configManager.GetConfig().autoStart;
+            autoDiscoveryCheckBox.Checked = configManager.GetConfig().autoDiscovery;
 
             updateList();
+
+            autoDiscoveryCheckBox_CheckedChanged(null, null);
 
             if (autoStartCheckBox.Checked)
                 connectButton_Click(null, null);
@@ -62,8 +65,9 @@ namespace nvan.PoKeysConnector
 
             connectButton.Text = "Connecting...";
             connectButton.Enabled = false;
+            autoDiscoveryCheckBox.Enabled = false;
 
-            configManager.UpdateConfig(new Config.Config { autoStart = autoStartCheckBox.Checked, poKeysIp = poKeysIpTextBox.Text, xPlaneIp = xPlaneIpTextBox.Text});
+            configManager.UpdateConfig(new Config.Config { autoStart = autoStartCheckBox.Checked, autoDiscovery = autoDiscoveryCheckBox.Checked, poKeysIp = poKeysIpTextBox.Text, xPlaneIp = xPlaneIpTextBox.Text});
             xPlaneConnector = new XPlaneConnector.XPlaneConnector(
                     xPlaneIpTextBox.Text,
                     49000
@@ -75,12 +79,13 @@ namespace nvan.PoKeysConnector
             int versionMajor = 0;
             int versionMinor = 0;
 
-            if (device.ConnectToNetworkDevice(poKeysIpTextBox.Text))
+            if (autoDiscoveryCheckBox.Checked ? device.ConnectToDevice(((UsbDeviceItem)pokeysList.SelectedItem).Id) : device.ConnectToNetworkDevice(poKeysIpTextBox.Text))
             {
                 device.GetDeviceIDEx(ref serialNumber, ref versionMajor, ref versionMinor);
                 statusLabel.Text = "Status: Connected to PoKeys - " + serialNumber;
                 connectButton.Text = "Disconnect";
                 connectButton.Enabled = true;
+                autoDiscoveryCheckBox.Enabled = true;
                 sync = true;
 
                 device.SetAutoSetOutputs(1);
@@ -91,6 +96,7 @@ namespace nvan.PoKeysConnector
                 statusLabel.Text = "Status: Error while connecting, try again";
                 connectButton.Text = "Connect";
                 connectButton.Enabled = true;
+                autoDiscoveryCheckBox.Enabled = true;
                 return;
             }
 
@@ -438,6 +444,51 @@ namespace nvan.PoKeysConnector
             }
 
             logForm.closeButton_Click(null, null);
+        }
+
+        private void autoDiscoveryCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (autoDiscoveryCheckBox.Checked) {
+                pokeysList.Show();
+                deviceLabel.Text = "Device";
+
+                pokeysList.Items.Clear();
+
+                for(int i = 0; i < device.EnumerateDevices(); i++)
+                {
+                    if(device.ConnectToDevice(i))
+                    {
+                        int serialNumber = 0;
+                        int versionMajor = 0;
+                        int versionMinor = 0;
+                        device.GetDeviceIDEx(ref serialNumber, ref versionMajor, ref versionMinor);
+
+                        pokeysList.Items.Add(new UsbDeviceItem { Serial = serialNumber.ToString(), Id = i });
+
+                        device.DisconnectDevice();
+                    }
+                }
+
+                if (pokeysList.Items.Count < 1)
+                    connectButton.Enabled = false;
+
+                return;
+            }
+
+            pokeysList.Hide();
+            deviceLabel.Text = "PoKeys IP";
+            connectButton.Enabled = true;
+        }
+    }
+
+    public class UsbDeviceItem
+    {
+        public string Serial { get; set; }
+        public int Id { get; set; }
+
+        public override string ToString()
+        {
+            return Serial;
         }
     }
 }

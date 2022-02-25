@@ -41,8 +41,8 @@ namespace nvan.PoKeysConnector
             this.dataRefHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.writeValueHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ioHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
+            this.deviceLabel = new System.Windows.Forms.Label();
+            this.xplaneIpLabel = new System.Windows.Forms.Label();
             this.xPlaneIpTextBox = new System.Windows.Forms.TextBox();
             this.addButton = new System.Windows.Forms.Button();
             this.editButton = new System.Windows.Forms.Button();
@@ -52,13 +52,15 @@ namespace nvan.PoKeysConnector
             this.cpuProgressBar = new System.Windows.Forms.ProgressBar();
             this.reconnectTimer = new System.Windows.Forms.Timer(this.components);
             this.logButton = new System.Windows.Forms.Button();
+            this.autoDiscoveryCheckBox = new System.Windows.Forms.CheckBox();
+            this.pokeysList = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // connectButton
             // 
-            this.connectButton.Location = new System.Drawing.Point(193, 38);
+            this.connectButton.Location = new System.Drawing.Point(180, 38);
             this.connectButton.Name = "connectButton";
-            this.connectButton.Size = new System.Drawing.Size(119, 23);
+            this.connectButton.Size = new System.Drawing.Size(200, 23);
             this.connectButton.TabIndex = 0;
             this.connectButton.Text = "Connect";
             this.connectButton.UseVisualStyleBackColor = true;
@@ -131,23 +133,23 @@ namespace nvan.PoKeysConnector
             this.ioHeader.Text = "I/O";
             this.ioHeader.Width = 28;
             // 
-            // label5
+            // deviceLabel
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 15);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(56, 13);
-            this.label5.TabIndex = 9;
-            this.label5.Text = "PoKeys IP";
+            this.deviceLabel.AutoSize = true;
+            this.deviceLabel.Location = new System.Drawing.Point(12, 15);
+            this.deviceLabel.Name = "deviceLabel";
+            this.deviceLabel.Size = new System.Drawing.Size(56, 13);
+            this.deviceLabel.TabIndex = 9;
+            this.deviceLabel.Text = "PoKeys IP";
             // 
-            // label6
+            // xplaneIpLabel
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(12, 41);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(57, 13);
-            this.label6.TabIndex = 10;
-            this.label6.Text = "X-Plane IP";
+            this.xplaneIpLabel.AutoSize = true;
+            this.xplaneIpLabel.Location = new System.Drawing.Point(12, 41);
+            this.xplaneIpLabel.Name = "xplaneIpLabel";
+            this.xplaneIpLabel.Size = new System.Drawing.Size(57, 13);
+            this.xplaneIpLabel.TabIndex = 10;
+            this.xplaneIpLabel.Text = "X-Plane IP";
             // 
             // xPlaneIpTextBox
             // 
@@ -192,7 +194,7 @@ namespace nvan.PoKeysConnector
             // statusLabel
             // 
             this.statusLabel.AutoSize = true;
-            this.statusLabel.Location = new System.Drawing.Point(318, 20);
+            this.statusLabel.Location = new System.Drawing.Point(383, 16);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(109, 13);
             this.statusLabel.TabIndex = 15;
@@ -201,20 +203,20 @@ namespace nvan.PoKeysConnector
             // autoStartCheckBox
             // 
             this.autoStartCheckBox.AutoSize = true;
-            this.autoStartCheckBox.Location = new System.Drawing.Point(193, 14);
+            this.autoStartCheckBox.Location = new System.Drawing.Point(264, 15);
             this.autoStartCheckBox.Name = "autoStartCheckBox";
-            this.autoStartCheckBox.Size = new System.Drawing.Size(119, 17);
+            this.autoStartCheckBox.Size = new System.Drawing.Size(116, 17);
             this.autoStartCheckBox.TabIndex = 16;
-            this.autoStartCheckBox.Text = "Connect on start up";
+            this.autoStartCheckBox.Text = "Connect at start up";
             this.autoStartCheckBox.UseVisualStyleBackColor = true;
             // 
             // cpuProgressBar
             // 
             this.cpuProgressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.cpuProgressBar.Location = new System.Drawing.Point(321, 38);
+            this.cpuProgressBar.Location = new System.Drawing.Point(386, 38);
             this.cpuProgressBar.Name = "cpuProgressBar";
-            this.cpuProgressBar.Size = new System.Drawing.Size(401, 23);
+            this.cpuProgressBar.Size = new System.Drawing.Size(336, 23);
             this.cpuProgressBar.TabIndex = 17;
             // 
             // reconnectTimer
@@ -233,11 +235,33 @@ namespace nvan.PoKeysConnector
             this.logButton.UseVisualStyleBackColor = true;
             this.logButton.Click += new System.EventHandler(this.logButton_Click);
             // 
+            // autoDiscoveryCheckBox
+            // 
+            this.autoDiscoveryCheckBox.AutoSize = true;
+            this.autoDiscoveryCheckBox.Location = new System.Drawing.Point(180, 15);
+            this.autoDiscoveryCheckBox.Name = "autoDiscoveryCheckBox";
+            this.autoDiscoveryCheckBox.Size = new System.Drawing.Size(78, 17);
+            this.autoDiscoveryCheckBox.TabIndex = 19;
+            this.autoDiscoveryCheckBox.Text = "USB Mode";
+            this.autoDiscoveryCheckBox.UseVisualStyleBackColor = true;
+            this.autoDiscoveryCheckBox.CheckedChanged += new System.EventHandler(this.autoDiscoveryCheckBox_CheckedChanged);
+            // 
+            // pokeysList
+            // 
+            this.pokeysList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.pokeysList.FormattingEnabled = true;
+            this.pokeysList.Location = new System.Drawing.Point(74, 11);
+            this.pokeysList.Name = "pokeysList";
+            this.pokeysList.Size = new System.Drawing.Size(100, 21);
+            this.pokeysList.TabIndex = 20;
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(734, 328);
+            this.Controls.Add(this.pokeysList);
+            this.Controls.Add(this.autoDiscoveryCheckBox);
             this.Controls.Add(this.logButton);
             this.Controls.Add(this.cpuProgressBar);
             this.Controls.Add(this.autoStartCheckBox);
@@ -246,8 +270,8 @@ namespace nvan.PoKeysConnector
             this.Controls.Add(this.editButton);
             this.Controls.Add(this.addButton);
             this.Controls.Add(this.xPlaneIpTextBox);
-            this.Controls.Add(this.label6);
-            this.Controls.Add(this.label5);
+            this.Controls.Add(this.xplaneIpLabel);
+            this.Controls.Add(this.deviceLabel);
             this.Controls.Add(this.eventsList);
             this.Controls.Add(this.poKeysIpTextBox);
             this.Controls.Add(this.connectButton);
@@ -272,8 +296,8 @@ namespace nvan.PoKeysConnector
         private System.Windows.Forms.ColumnHeader readValueHeader;
         private System.Windows.Forms.ColumnHeader dataRefHeader;
         private System.Windows.Forms.ColumnHeader writeValueHeader;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label deviceLabel;
+        private System.Windows.Forms.Label xplaneIpLabel;
         private System.Windows.Forms.TextBox xPlaneIpTextBox;
         private System.Windows.Forms.ColumnHeader nameHeader;
         private System.Windows.Forms.Button addButton;
@@ -285,6 +309,8 @@ namespace nvan.PoKeysConnector
         private System.Windows.Forms.ProgressBar cpuProgressBar;
         private System.Windows.Forms.Timer reconnectTimer;
         private System.Windows.Forms.Button logButton;
+        private System.Windows.Forms.CheckBox autoDiscoveryCheckBox;
+        private System.Windows.Forms.ComboBox pokeysList;
     }
 }
 
