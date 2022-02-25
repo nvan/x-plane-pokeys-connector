@@ -50,6 +50,8 @@ namespace nvan.PoKeysConnector
             this.statusLabel = new System.Windows.Forms.Label();
             this.autoStartCheckBox = new System.Windows.Forms.CheckBox();
             this.cpuProgressBar = new System.Windows.Forms.ProgressBar();
+            this.reconnectTimer = new System.Windows.Forms.Timer(this.components);
+            this.logButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // connectButton
@@ -71,7 +73,7 @@ namespace nvan.PoKeysConnector
             // 
             // timer
             // 
-            this.timer.Interval = 30;
+            this.timer.Interval = 60;
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
             // eventsList
@@ -215,11 +217,28 @@ namespace nvan.PoKeysConnector
             this.cpuProgressBar.Size = new System.Drawing.Size(401, 23);
             this.cpuProgressBar.TabIndex = 17;
             // 
+            // reconnectTimer
+            // 
+            this.reconnectTimer.Interval = 1000;
+            this.reconnectTimer.Tick += new System.EventHandler(this.reconnectTimer_Tick);
+            // 
+            // logButton
+            // 
+            this.logButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.logButton.Location = new System.Drawing.Point(255, 293);
+            this.logButton.Name = "logButton";
+            this.logButton.Size = new System.Drawing.Size(43, 23);
+            this.logButton.TabIndex = 18;
+            this.logButton.Text = "Log";
+            this.logButton.UseVisualStyleBackColor = true;
+            this.logButton.Click += new System.EventHandler(this.logButton_Click);
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(734, 328);
+            this.Controls.Add(this.logButton);
             this.Controls.Add(this.cpuProgressBar);
             this.Controls.Add(this.autoStartCheckBox);
             this.Controls.Add(this.statusLabel);
@@ -264,6 +283,8 @@ namespace nvan.PoKeysConnector
         private System.Windows.Forms.ColumnHeader ioHeader;
         private System.Windows.Forms.CheckBox autoStartCheckBox;
         private System.Windows.Forms.ProgressBar cpuProgressBar;
+        private System.Windows.Forms.Timer reconnectTimer;
+        private System.Windows.Forms.Button logButton;
     }
 }
 

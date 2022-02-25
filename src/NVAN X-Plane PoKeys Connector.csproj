@@ -73,6 +73,12 @@
       <DependentUpon>eventsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Events\SimEventsManager.cs" />
+    <Compile Include="LogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogForm.Designer.cs">
+      <DependentUpon>LogForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="mainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -83,6 +89,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="eventsForm.resx">
       <DependentUpon>eventsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LogForm.resx">
+      <DependentUpon>LogForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="mainForm.resx">
       <DependentUpon>mainForm.cs</DependentUpon>
@@ -113,7 +122,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
-    <Content Include="pokeys-icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

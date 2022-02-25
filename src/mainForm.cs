@@ -12,9 +12,12 @@ namespace nvan.PoKeysConnector
     {
         private ConfigManager configManager;
         private SimEventsManager simEventsManager;
+        private LogForm logForm;
 
         public mainForm(ref ConfigManager configManager, ref SimEventsManager simEventsManager)
         {
+            logForm = new LogForm();
+
             this.configManager = configManager;
             this.simEventsManager = simEventsManager;
 
@@ -123,6 +126,7 @@ namespace nvan.PoKeysConnector
                 connectButton.Enabled = true;
                 connectButton.Text = "Connect";
                 statusLabel.Text = "Status: Disconnected";
+                reconnectTimer.Start();
                 return;
             }
 
@@ -247,6 +251,8 @@ namespace nvan.PoKeysConnector
                 // NORMAL OUTPUTS
                 try
                 {
+                    normalOutputsTemp.Clear();
+
                     // FAST CLONE TO AVOID PROBLEMS IF COLLECTION IS MODIFIED WHILE SENDING DATA TO POKEYS
                     foreach (KeyValuePair<int, bool> normalOutput in normalOutputs)
                     {
@@ -260,15 +266,20 @@ namespace nvan.PoKeysConnector
                     {
                         device.SetPinData((byte)normalOutput.Key, (byte)4);
                         device.SetOutput((byte)normalOutput.Key, normalOutput.Value);
+                        logForm.log("Sent to Normal Output (" + normalOutput.Key + "): " + (normalOutput.Value ? "ON" : "OFF"));
                     }
-                    normalOutputsTemp.Clear();
                 }
-                catch (Exception ex) {}
+                catch (Exception ex)
+                {
+                    logForm.log("Error while sending normal outputs: " + ex.Message);
+                }
 
 
                 // POEXTBUS OUTPUTS
                 try
                 {
+                    poExtBusOutputsTemp.Clear();
+
                     // FAST CLONE TO AVOID PROBLEMS IF COLLECTION IS MODIFIED WHILE SENDING DATA TO POKEYS
                     foreach (KeyValuePair<int, bool> poExtBusOutput in poExtBusOutputs)
                     {
@@ -283,11 +294,13 @@ namespace nvan.PoKeysConnector
                         var pos = GetPositionByPinNumber((byte)poExtBusOutput.Key);
 
                         device.AuxilaryBusSetData(1, (byte)pos.Y, (byte)pos.X, poExtBusOutput.Value);
-
+                        logForm.log("Sent to PoExtBus (" + poExtBusOutput.Key + "): " + (poExtBusOutput.Value ? "ON" : "OFF"));
                     }
-                    poExtBusOutputsTemp.Clear();
                 }
-                catch (Exception ex) {}
+                catch (Exception ex)
+                {
+                    logForm.log("Error while sending POEXT outputs: " + ex.Message);
+                }
             }
 
             timer.Start();
@@ -361,8 +374,13 @@ namespace nvan.PoKeysConnector
 
         private void onDataRefUpdate(XPlaneConnector.DataRefElement dataRef)
         {
+            logForm.log("Received DataRef: " + dataRef.DataRef + " - Value: " + dataRef.Value);
+
             if (!device.Connected())
+            {
+                logForm.log("DataRef not saved due to device not connected");
                 return;
+            }
 
             foreach(SimEvent simEvent in simEventsManager.GetEvents())
             {
@@ -380,14 +398,46 @@ namespace nvan.PoKeysConnector
                     case "PIN":
                         normalOutputs.Remove(simEvent.pinNumber - 1);
                         normalOutputs.Add(simEvent.pinNumber - 1, simEvent.writeValue > 0);
+                        logForm.log("Queued DataRef for Normal Output");
                         break;
 
                     case "POEXTBUS":
                         poExtBusOutputs.Remove(simEvent.pinNumber);
                         poExtBusOutputs.Add(simEvent.pinNumber, simEvent.writeValue > 0);
+                        logForm.log("Queued DataRef for PoExt Output");
                         break;
                 }
             }
+        }
+
+        int reconnectTime = 0;
+        private void reconnectTimer_Tick(object sender, EventArgs e)
+        {
+            reconnectTimer.Stop();
+            if(reconnectTime == 1)
+            {
+                reconnectTime = 0;
+                connectButton_Click(null, null);
+                return;
+            }
+
+            if (reconnectTime == 0)
+                reconnectTime = 5;
+
+            statusLabel.Text = "Status: Reconnecting in " + --reconnectTime + "...";
+
+            reconnectTimer.Start();
+        }
+
+        private void logButton_Click(object sender, EventArgs e)
+        {
+            if (!logForm.Visible)
+            {
+                logForm.Show();
+                return;
+            }
+
+            logForm.closeButton_Click(null, null);
         }
     }
 }
