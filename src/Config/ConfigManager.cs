@@ -23,7 +23,9 @@ namespace nvan.PoKeysConnector.Config
                 {
                     autoStart = false,
                     poKeysIp = "",
-                    xPlaneIp = "127.0.0.1"
+                    xPlaneIp = "127.0.0.1",
+                    autoDiscovery = false,
+                    lastUsbDeviceConnected = ""
                 };
 
                 SaveConfig();

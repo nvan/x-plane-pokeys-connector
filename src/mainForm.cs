@@ -67,7 +67,7 @@ namespace nvan.PoKeysConnector
             connectButton.Enabled = false;
             autoDiscoveryCheckBox.Enabled = false;
 
-            configManager.UpdateConfig(new Config.Config { autoStart = autoStartCheckBox.Checked, autoDiscovery = autoDiscoveryCheckBox.Checked, poKeysIp = poKeysIpTextBox.Text, xPlaneIp = xPlaneIpTextBox.Text});
+            configManager.UpdateConfig(new Config.Config { autoStart = autoStartCheckBox.Checked, autoDiscovery = autoDiscoveryCheckBox.Checked, poKeysIp = poKeysIpTextBox.Text, xPlaneIp = xPlaneIpTextBox.Text, lastUsbDeviceConnected = autoDiscoveryCheckBox.Checked ? ((UsbDeviceItem)pokeysList.SelectedItem).Serial : ""});
             xPlaneConnector = new XPlaneConnector.XPlaneConnector(
                     xPlaneIpTextBox.Text,
                     49000
@@ -454,6 +454,8 @@ namespace nvan.PoKeysConnector
 
                 pokeysList.Items.Clear();
 
+                int index = 0;
+
                 for(int i = 0; i < device.EnumerateDevices(); i++)
                 {
                     if(device.ConnectToDevice(i))
@@ -465,7 +467,11 @@ namespace nvan.PoKeysConnector
 
                         pokeysList.Items.Add(new UsbDeviceItem { Serial = serialNumber.ToString(), Id = i });
 
+                        if (configManager.GetConfig().lastUsbDeviceConnected == serialNumber.ToString())
+                            pokeysList.SelectedIndex = index;
+
                         device.DisconnectDevice();
+                        index++;
                     }
                 }
 

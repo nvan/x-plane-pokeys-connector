@@ -3,6 +3,6 @@
     public class Config
     {
         public bool autoStart, autoDiscovery;
-        public string xPlaneIp, poKeysIp;
+        public string xPlaneIp, poKeysIp, lastUsbDeviceConnected;
     }
 }
