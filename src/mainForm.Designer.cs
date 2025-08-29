@@ -75,7 +75,7 @@ namespace nvan.PoKeysConnector
             // 
             // timer
             // 
-            this.timer.Interval = 60;
+            this.timer.Interval = 1;
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
             // eventsList
@@ -281,6 +281,7 @@ namespace nvan.PoKeysConnector
             this.MinimumSize = new System.Drawing.Size(650, 367);
             this.Name = "mainForm";
             this.Text = "NVAN PoKeys Connector for X-Plane";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.mainForm_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 

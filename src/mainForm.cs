@@ -5,6 +5,10 @@ using nvan.PoKeysConnector.Config;
 using PoKeysDevice_DLL;
 using nvan.PoKeysConnector.Events;
 using System.Collections.Generic;
+using XPlaneConnector;
+using System.Threading;
+using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace nvan.PoKeysConnector
 {
@@ -13,6 +17,9 @@ namespace nvan.PoKeysConnector
         private ConfigManager configManager;
         private SimEventsManager simEventsManager;
         private LogForm logForm;
+
+        private Thread SendDaraRefsThread;
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         public mainForm(ref ConfigManager configManager, ref SimEventsManager simEventsManager)
         {
@@ -34,6 +41,9 @@ namespace nvan.PoKeysConnector
 
             if (autoStartCheckBox.Checked)
                 connectButton_Click(null, null);
+
+            SendDaraRefsThread = new Thread(() => SendDataRefs(cancellationTokenSource.Token));
+            SendDaraRefsThread.Start();
         }
 
         XPlaneConnector.XPlaneConnector xPlaneConnector;
@@ -120,7 +130,11 @@ namespace nvan.PoKeysConnector
         Dictionary<int, bool> normalOutputs = new Dictionary<int, bool>();
         Dictionary<int, bool> normalOutputsTemp = new Dictionary<int, bool>();
 
-        Dictionary<string, float> finalDataRefs = new Dictionary<string, float>();
+        volatile Dictionary<string, float> finalDataRefs = new Dictionary<string, float>();
+
+        Dictionary<string, CancellationTokenSource> pendingToCancelCommands = new Dictionary<string, CancellationTokenSource>();
+
+        private List<KeyValuePair<string, float>> queue = new List<KeyValuePair<string, float>>();
 
         private void timer_Tick(object sender, EventArgs e)
         {
@@ -139,7 +153,7 @@ namespace nvan.PoKeysConnector
             byte poKeysCpuUsage = 0;
             if (device.GetLoadStatus(ref poKeysCpuUsage))
             {
-                cpuProgressBar.Value = poKeysCpuUsage;
+                cpuProgressBar.Value = poKeysCpuUsage > 100 ? 100 : poKeysCpuUsage;
             }
             if (poKeysCpuUsage == 0)
             {
@@ -151,6 +165,8 @@ namespace nvan.PoKeysConnector
 
             if (device.BlockGetInputAll55(ref inputs))
             {
+                finalDataRefs.Clear();
+
                 // DIGITAL AND DUAL
                 if (sync)
                     inputs.CopyTo(oldInputs, 0);
@@ -175,7 +191,19 @@ namespace nvan.PoKeysConnector
                     {
                         if (simEvent.dataRef.StartsWith("%"))
                         {
-                            xPlaneConnector.SendCommand(new XPlaneConnector.XPlaneCommand(simEvent.dataRef.Substring(1), ""));
+                            xPlaneConnector.SendCommand(new XPlaneCommand(simEvent.dataRef.Substring(1), ""));
+                            continue;
+                        }
+
+                        // Invert dataref
+                        if (simEvent.dataRef.StartsWith("!"))
+                        {
+                            var drefName = simEvent.dataRef.Substring(1);
+                            try
+                            {
+                                finalDataRefs.Remove(drefName);
+                                finalDataRefs.Add(drefName, suscribedDatarefs[drefName].Value > 0 ? 0 : 1);
+                            } catch { }
                             continue;
                         }
 
@@ -186,7 +214,8 @@ namespace nvan.PoKeysConnector
 
                 foreach (KeyValuePair<string, float> finalDataRef in finalDataRefs)
                 {
-                    xPlaneConnector.SetDataRefValue(new XPlaneConnector.DataRefElement { DataRef = finalDataRef.Key }, finalDataRef.Value);
+                    queue.Add(new KeyValuePair<string, float>(finalDataRef.Key, finalDataRef.Value));
+                    logForm.log("Sent dataref: " + finalDataRef.Key + ": " + finalDataRef.Value.ToString() + " - Sync: " + sync.ToString());
                 }
 
                 inputs.CopyTo(oldInputs, 0);
@@ -221,7 +250,7 @@ namespace nvan.PoKeysConnector
                         if (simEvent.round)
                             value = (float)Math.Round((decimal)value);
 
-                        xPlaneConnector.SetDataRefValue(new XPlaneConnector.DataRefElement { DataRef = simEvent.dataRef }, value);
+                        xPlaneConnector.SetDataRefValue(suscribedDatarefs[simEvent.dataRef], value);
                     }
                 }
 
@@ -247,7 +276,7 @@ namespace nvan.PoKeysConnector
                         continue;
 
                     if (encoders[simEvent.pinNumber - 1] != oldEncoders[simEvent.pinNumber - 1])
-                        xPlaneConnector.SetDataRefValue(new XPlaneConnector.DataRefElement { DataRef = simEvent.dataRef }, encoders[simEvent.pinNumber - 1] + simEvent.readValue);
+                        xPlaneConnector.SetDataRefValue(suscribedDatarefs[simEvent.dataRef], encoders[simEvent.pinNumber - 1] + simEvent.readValue);
                 }
 
                 encoders.CopyTo(oldEncoders, 0);
@@ -335,18 +364,30 @@ namespace nvan.PoKeysConnector
             suscribeToDataRefs();
         }
 
+        private Dictionary<string, DataRefElement> suscribedDatarefs = new Dictionary<string, DataRefElement>();
+
         private void suscribeToDataRefs()
         {
             if (xPlaneConnector == null)
+            {
                 return;
+            }
 
             foreach(SimEvent simEvent in simEventsManager.GetEvents())
             {
-                if (simEvent.io == InputOutput.Input)
+                if (suscribedDatarefs.ContainsKey(simEvent.dataRef))
                     continue;
 
-                xPlaneConnector.Unsubscribe(simEvent.dataRef); // To avoid duplicates
-                xPlaneConnector.Subscribe(new XPlaneConnector.DataRefElement { DataRef = simEvent.dataRef }, 5);
+                if (simEvent.dataRef.StartsWith('%'))
+                    continue;
+
+                string drName = simEvent.dataRef;
+                if (drName.StartsWith('!'))
+                    drName = drName.Substring(1);
+
+                var dr = new DataRefElement { DataRef = drName, Frequency = 10 };
+                xPlaneConnector.Subscribe(dr);
+                suscribedDatarefs.Add(drName, dr);
             }
         }
 
@@ -378,7 +419,7 @@ namespace nvan.PoKeysConnector
             new eventsForm(ref simEvent, updateList).ShowDialog();
         }
 
-        private void onDataRefUpdate(XPlaneConnector.DataRefElement dataRef)
+        private void onDataRefUpdate(DataRefElement dataRef)
         {
             logForm.log("Received DataRef: " + dataRef.DataRef + " - Value: " + dataRef.Value);
 
@@ -391,7 +432,9 @@ namespace nvan.PoKeysConnector
             foreach(SimEvent simEvent in simEventsManager.GetEvents())
             {
                 if (simEvent.io == InputOutput.Input)
+                {
                     continue;
+                }
 
                 if (simEvent.dataRef != dataRef.DataRef)
                     continue;
@@ -484,6 +527,42 @@ namespace nvan.PoKeysConnector
             pokeysList.Hide();
             deviceLabel.Text = "PoKeys IP";
             connectButton.Enabled = true;
+        }
+
+        private void SendDataRefs(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                if (xPlaneConnector == null)
+                    break;
+
+                try
+                {
+                    if (queue.Count == 0)
+                        continue;
+
+                    var first = queue[0];
+                    queue.RemoveAt(0);
+
+                    var currentDr = suscribedDatarefs[first.Key];
+
+                    //xPlaneConnector.SubscribeAsync(currentDr);
+                    
+                    /*while (Math.Round(currentDr.Value) != Math.Round(first.Value))
+                    {*/
+                        xPlaneConnector.SetDataRefValue(currentDr, first.Value);
+                        Thread.Sleep(30);
+                    /*}*/
+
+                    logForm.log("Mission accomplished: " + currentDr.DataRef + " - " + (first.Value > 0.5).ToString());
+                } catch { continue; }
+            }
+        }
+
+        private void mainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            xPlaneConnector?.Stop();
+            cancellationTokenSource.Cancel();
         }
     }
 

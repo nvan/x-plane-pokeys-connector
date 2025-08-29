@@ -159,5 +159,10 @@ namespace nvan.PoKeysConnector
                 pin2Selector.Hide();
             }
         }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

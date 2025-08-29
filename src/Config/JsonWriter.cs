@@ -14,7 +14,7 @@ namespace nvan.PoKeysConnector.Config
 
         public void WriteFile(T obj)
         {
-            File.WriteAllText(file, JsonConvert.SerializeObject(obj));
+            File.WriteAllText(file, JsonConvert.SerializeObject(obj, Formatting.Indented));
         }
     }
 }
