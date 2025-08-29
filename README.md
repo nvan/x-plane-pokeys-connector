@@ -26,6 +26,10 @@ I.E: `%sim/operation/pause_toggle` will send the pause **Command**.
 
 When a **Command** is used, `Write Value` will be ignored.
 
+We also added an option to invert the current value of a dataref (only works with 0 and 1 values) by adding `!` prior to it's name.
+
+I.E: `!airbus.a320.parking_brake` will toggle it each time you send the dataref (usually when a button becomes on).
+
 ### Input and outputs
 
 You can interface different types of inputs and outputs by changing the pin type:
